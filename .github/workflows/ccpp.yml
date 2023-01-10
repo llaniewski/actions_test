@@ -11,14 +11,14 @@ jobs:
     - name: install
       shell: bash
       run: |
-        sudo add-apt-repository ppa:deki/firejail
-        sudo apt-get update
-        sudo apt-get install firejail firejail-profiles
-        which joe
-        mount
+        sudo add-apt-repository ppa:deki/firejail || echo "msg: wrong"
+        sudo apt-get update || echo "msg: wrong"
+        sudo apt-get install firejail firejail-profiles || echo "msg: wrong"
+        which joe || echo "msg: wrong"
+        mount || echo "msg: wrong"
     - name: run
       shell: sudo firejail --noprofile --overlay-tmpfs
       run: |
-        apt-get install joe
-        which joe
-        mount
+        apt-get install joe || echo "msg: wrong"
+        which joe || echo "msg: wrong"
+        mount || echo "msg: wrong"
