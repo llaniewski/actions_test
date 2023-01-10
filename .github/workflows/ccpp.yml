@@ -16,6 +16,7 @@ jobs:
         sudo apt-get install firejail firejail-profiles || echo "msg: wrong"
         which joe || echo "msg: wrong"
         mount || echo "msg: wrong"
+        firejail --version || echo "msg: wrong"
     - name: run
       shell: bash
       run: |
