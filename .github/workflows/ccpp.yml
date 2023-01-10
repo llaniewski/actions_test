@@ -17,7 +17,7 @@ jobs:
         which joe || echo "msg: wrong"
         mount || echo "msg: wrong"
     - name: run
-      shell: sudo firejail --noprofile --overlay-tmpfs bash {0}
+      shell: sudo firejail --noprofile --overlay bash {0}
       run: |
         apt-get install joe || echo "msg: wrong"
         which joe || echo "msg: wrong"
