@@ -17,8 +17,11 @@ jobs:
         which joe || echo "msg: wrong"
         mount || echo "msg: wrong"
     - name: run
-      shell: sudo firejail --noprofile --overlay bash {0}
+      shell: bash
       run: |
-        apt-get install joe || echo "msg: wrong"
-        which joe || echo "msg: wrong"
-        mount || echo "msg: wrong"
+        tee scr <<EOF
+          apt-get install joe || echo "msg: wrong"
+          which joe || echo "msg: wrong"
+          mount || echo "msg: wrong"
+        EOF
+        sudo firejail --noprofile --overlay bash scr
