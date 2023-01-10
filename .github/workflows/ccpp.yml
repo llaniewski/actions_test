@@ -15,8 +15,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install firejail firejail-profiles
         which joe
+        mount
     - name: run
       shell: sudo firejail --noprofile --overlay-tmpfs
       run: |
         apt-get install joe
         which joe
+        mount
