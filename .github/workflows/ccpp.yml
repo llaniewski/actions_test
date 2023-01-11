@@ -9,13 +9,18 @@ jobs:
     - name: Git checkout
       uses: actions/checkout@v3
     - name: install
+      id: install
       shell: bash
       run: |
         make
+        echo $USER
+        echo "user=$USER" >>$GITHUB_OUTPUT
         mkdir test
     - name: run
       shell: sudo ./ovroot test /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-      run: apt-get install joe
+      run: |
+        su ${{ steps.install.outputs.user }}
+        apt-get install joe
     - name: print
       shell: bash
       run: find test/
