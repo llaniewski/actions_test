@@ -11,18 +11,12 @@ jobs:
     - name: install
       shell: bash
       run: |
-        sudo add-apt-repository ppa:deki/firejail || echo "msg: wrong"
-        sudo apt-get update || echo "msg: wrong"
-        sudo apt-get install firejail firejail-profiles || echo "msg: wrong"
-        which joe || echo "msg: wrong"
-        mount || echo "msg: wrong"
-        firejail --version || echo "msg: wrong"
+        make
+        mkdir test
     - name: run
+      shell: sudo ./ovroot test bash {0}
+      run: apt-get install joe
+    - name: print
       shell: bash
-      run: |
-        tee scr <<EOF
-          apt-get install joe || echo "msg: wrong"
-          which joe || echo "msg: wrong"
-          mount || echo "msg: wrong"
-        EOF
-        sudo firejail --noprofile --overlay bash scr
+      run: find test/
+

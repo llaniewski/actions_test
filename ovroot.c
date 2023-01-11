@@ -76,7 +76,7 @@ int main (int argc, char *argv[]) {
       fprintf(stderr, "usage: ovroot [--no-chroot] [--no-chdir] [-r ROOT] [-w RELATIVE_WORKDIR] [-u RELATIVE_UPPERDIR] OVERLAY [COMMAND...]\n");
       fprintf(stderr, "UID: %d Effective UID: %d\n", uid, euid);
       if(mount_flags & MS_NOSUID) {
-        fprintf(stderr, "Filesystem will be mounted nosuid (you are not root)\n", uid, euid);
+        fprintf(stderr, "Filesystem will be mounted nosuid (you are not root: %d,%d)\n", uid, euid);
       }
       return 1;
     }
@@ -170,7 +170,7 @@ int main (int argc, char *argv[]) {
 
     if(mount("overlay", tmpdir_merged, "overlay", mount_flags, mount_opts) == -1) {
       char errmsg[PATH_MAX*6+256];
-      snprintf(errmsg, PATH_MAX*6+256, "mount(overlay, %s, overlay, %ud, %s)", tmpdir_merged, mount_flags, mount_opts);
+      snprintf(errmsg, PATH_MAX*6+256, "mount(overlay, %s, overlay, %lu, %s)", tmpdir_merged, mount_flags, mount_opts);
       perror(errmsg);
       return 1;
     }
