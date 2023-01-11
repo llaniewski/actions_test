@@ -14,7 +14,7 @@ jobs:
         make
         mkdir test
     - name: run
-      shell: sudo ./ovroot test bash {0}
+      shell: sudo ./ovroot test /usr/bin/bash --noprofile --norc -e -o pipefail {0}
       run: apt-get install joe
     - name: print
       shell: bash
