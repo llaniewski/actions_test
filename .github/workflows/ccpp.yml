@@ -21,7 +21,8 @@ jobs:
       run: |
         chmod 755 / 
         su ${{ steps.install.outputs.user }}
-        apt-get install joe
+        sudo apt-get update
+        sudo apt-get install joe
     - name: print
       shell: bash
       run: find test/
