@@ -19,6 +19,7 @@ jobs:
     - name: run
       shell: sudo ./ovroot test /usr/bin/bash --noprofile --norc -e -o pipefail {0}
       run: |
+        chmod 755 / 
         su ${{ steps.install.outputs.user }}
         apt-get install joe
     - name: print
