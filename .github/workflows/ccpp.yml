@@ -18,10 +18,10 @@ jobs:
       shell: ov.bash {0}
       run: |
         ./install.sh --sudo --group r
-        # ./install.sh --sudo --group rdep
-        # ./install.sh --sudo --group cuda
-        # ./install.sh --sudo --group openmpi
-        # ./install.sh --sudo --group cuda 11.7
+         ./install.sh --sudo --group rdep
+         ./install.sh --sudo --group cuda
+         ./install.sh --sudo --group openmpi
+         ./install.sh --sudo --group cuda 11.7
     - name: stop
       shell: bash
       id: ovstop
@@ -56,7 +56,9 @@ jobs:
         sudo tar xzf diff.tgz -C $OV/
         ov.root start
     - shell: ov.bash {0}
-      run: R -e 'print(1:10)'
+      run: |
+        R -e 'print(1:10)'
+        nvcc --version
     - name: stop
       shell: bash
       run: ov.root stop
