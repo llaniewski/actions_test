@@ -14,8 +14,11 @@ jobs:
     - name: install
       shell: ov.bash {0}
       run: |
-        ./install.sh --sudo r
-        ./install.sh --sudo rdep
+        ./install.sh --sudo --group r
+        ./install.sh --sudo --group rdep
+        ./install.sh --sudo --group cuda
+        ./install.sh --sudo --group openmpi
+        ./install.sh --sudo --group cuda 11.7
     - name: stop
       shell: bash
       run: ov.root stop
