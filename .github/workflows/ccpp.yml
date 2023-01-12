@@ -14,11 +14,12 @@ jobs:
     - name: install
       shell: ov.bash {0}
       run: |
-        sudo apt-get install joe
+        ./install.sh --sudo r
+        ./install.sh --sudo rdep
     - name: stop
       shell: bash
       run: ov.root stop
     - name: print
       shell: bash
-      run: find $(ov.root path)
+      run: find $(ov.root path) || echo "---- DONE ----"
 
