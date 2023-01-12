@@ -19,9 +19,9 @@ jobs:
       run: |
         ./install.sh --sudo --group r
         ./install.sh --sudo --group rdep
-        ./install.sh --sudo --group cuda
-        ./install.sh --sudo --group openmpi
-        ./install.sh --sudo --group cuda 11.7
+        # ./install.sh --sudo --group cuda
+        # ./install.sh --sudo --group openmpi
+        # ./install.sh --sudo --group cuda 11.7
     - name: stop
       shell: bash
       id: ovstop
@@ -29,6 +29,7 @@ jobs:
         ov.root stop
         export OV=$(ov.root path)
         echo "path=$OV" >>$GITHUB_OUTPUT
+        sudo find $OV | while read line; do test -r "$line" || sudo rm "$line"; done
         echo "hash=$(find $OV | sort | sha256sum | cut -c 1-20)" >>$GITHUB_OUTPUT
     - uses: actions/cache/save@v3
       with:
@@ -48,7 +49,7 @@ jobs:
       shell: bash
       run: ./ov.root install && ov.root start
     - shell: ov.bash
-      run: nvcc -version
+      run: R -e 'print(1:10)'
     - name: stop
       shell: bash
       run: ov.root stop
