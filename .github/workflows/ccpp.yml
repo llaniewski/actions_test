@@ -8,22 +8,17 @@ jobs:
     steps:
     - name: Git checkout
       uses: actions/checkout@v3
-    - name: install
-      id: install
+    - name: start
       shell: bash
+      run: ./ov.root start
+    - name: install
+      shell: ./ov.root bash {0}
       run: |
-        make
-        echo $USER
-        echo "user=$USER" >>$GITHUB_OUTPUT
-        mkdir test
-    - name: run
-      shell: sudo ./ovroot test /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-      run: |
-        chmod 755 / 
-        su ${{ steps.install.outputs.user }}
-        sudo apt-get update
         sudo apt-get install joe
+    - name: stop
+      shell: bash
+      run: ./ov.root stop
     - name: print
       shell: bash
-      run: find test/
+      run: find ./overlay
 
