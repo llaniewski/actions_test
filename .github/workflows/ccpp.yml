@@ -22,6 +22,7 @@ jobs:
          ./install.sh --sudo --group cuda
          ./install.sh --sudo --group openmpi
          ./install.sh --sudo --group cuda 11.7
+         nvcc --version
     - name: stop
       shell: bash
       id: ovstop
@@ -53,7 +54,7 @@ jobs:
         ./ov.root install
         export OV=$(ov.root path)
         mkdir -p $OV/
-        sudo tar xzf diff.tgz -C $OV/
+        sudo tar xzf --same-permissions --same-owner diff.tgz -C $OV/
         ov.root start
     - shell: ov.bash {0}
       run: |
