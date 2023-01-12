@@ -1,0 +1,191 @@
+#!/bin/bash
+
+MYPATH="$(dirname -- "$(which -- "$0" 2>/dev/null || realpath -- "./$0")")"
+
+function usage {
+	echo "ov.root [start|stop|bash|run]"
+	exit -1
+}
+
+function error {
+	echo "$@"
+	exit -2
+}
+
+function verb {
+	if $VERB
+	then
+		echo "$@"
+	fi
+}
+
+function lock {
+	if ln -s "$OV/lock.$1" "$OV/lock.$1"
+	then
+		verb "LOCK: '$1': Locked"
+	else
+		echo "LOCK: '$1': Failed to lock"
+		if $FORCE
+		then
+			echo "Ignoring (-f)"
+			return 0
+		fi
+		exit -3
+	fi
+}
+
+function locked {
+	test -L "$OV/lock.$1"
+}
+
+function unlock {
+	if locked "$1"
+	then
+		rm "$OV/lock.$1"
+		verb "LOCK: '$1': Unlocked"
+	else
+		error "Trying to unlock ('$1') but lock doesn't exist."
+	fi
+}
+
+function check_invalid {
+	if locked "build" || locked "unmounting"
+	then
+		echo "ov.root is in an invalid state:"
+		ls -l "$OV/lock.*"
+		if $FORCE
+		then
+			echo "Ignoring (-f)"
+			return 0
+		fi
+		exit -4
+	fi
+}
+
+function running {
+	locked "running"
+}
+
+function ov_start {
+	if running
+	then
+		echo "Already running (according to lock)"
+		if $FORCE
+		then
+			echo "Ignoring (-f)"
+		else
+			exit 0;
+		fi
+	fi
+	mkdir -p $OV
+	lock "build"
+	verb "Creating directories"
+	mkdir -p $OV/diff
+	mkdir -p $OV/work
+	mkdir -p $OV/root
+	verb "Mouting overlay root"
+	sudo mount -t overlay -o lowerdir=/,upperdir=$OV/diff,workdir=$OV/work overlay $OV/root
+	for i in dev run tmp
+	do
+		verb "Mouting $i"
+		sudo mount --rbind /$i $OV/root/$i
+		sudo mount --make-rslave $OV/root/$i
+	done
+	lock "running"
+	unlock "build"
+}
+
+function ov_stop {
+	if ! running
+	then
+		echo "Already stopped (according to lock)"
+		if $FORCE
+		then
+			echo "Ignoring (-f)"
+		else
+			exit 0;
+		fi
+	fi
+	lock "unmounting"
+	sudo umount -R $OV/root
+	unlock "unmounting"
+	unlock "running"
+
+}
+
+function ov_run {
+	if running
+	then
+		sudo chroot "$OV/root" sudo -u "$USER" env -C "$PWD" OVERLAY="$OV" PATH="$PATH" "$@"
+	else
+		error "root overlay not running"
+	fi
+}
+
+VERB=false
+FORCE=false
+OV=$MYPATH/overlay
+while test -n "$1"
+do
+	case "$1" in
+	-h|--help)
+		echo ""
+		echo "ov.root [options] [start|stop|shell|run]"
+		echo ""
+		echo "Options:"
+		echo "  -h|--help    Print help"
+		echo "  -d PATH      Set path for the overlay setup"
+		echo ""
+		echo "Commands:"
+		echo "  start        Mount the root overlay"
+		echo "  stop         Unmount the root overlay"
+		echo "  shell        Run bash in the root overlay"
+		echo "  run COMMAND  Run COMMAND in the root overlay"
+		echo ""
+		exit 0;
+		;;
+	-d|--dir)
+		shift
+		test -z "$1" && error "-d option needs path"
+		OV="$1"
+		;;
+	-v|--verbose) VERB=true ;;
+	-f|--force) FORCE=true ;;
+	-*)
+		error "Unknown option '$1'"
+		;;
+	*) break ;;
+	esac
+	shift
+done
+
+if test -n "$OVERLAY"
+then
+	error "Already in an overlay: $OVERLAY"
+fi
+
+test -z "$1" && usage
+test -z "$OV" && error "The overlay directory cannot be an empty string"
+verb "Overlay directory: '$OV'"
+
+CMD="$1"
+shift
+check_invalid
+
+case "$CMD" in
+start) ov_start	;;
+stop) ov_stop ;;
+status)
+	if running
+	then
+		echo "running"
+		exit 0;
+	else
+		echo "stopped"
+		exit -1;
+	fi
+;;
+run) ov_run "$@" ;;
+bash) ov_run $BASH "$@" ;;
+*) error "Unknown command $CMD" ;;
+esac
