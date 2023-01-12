@@ -55,7 +55,7 @@ jobs:
         mkdir -p $OV/
         sudo tar xzf diff.tgz -C $OV/
         ov.root start
-    - shell: ov.bash
+    - shell: ov.bash {0}
       run: R -e 'print(1:10)'
     - name: stop
       shell: bash
