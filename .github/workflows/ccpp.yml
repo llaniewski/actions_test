@@ -10,15 +10,15 @@ jobs:
       uses: actions/checkout@v3
     - name: start
       shell: bash
-      run: ./ov.root start
+      run: ./ov.root install && ov.root start
     - name: install
-      shell: ./ov.root bash {0}
+      shell: ov.bash {0}
       run: |
         sudo apt-get install joe
     - name: stop
       shell: bash
-      run: ./ov.root stop
+      run: ov.root stop
     - name: print
       shell: bash
-      run: find ./overlay
+      run: find $(ov.root path)
 

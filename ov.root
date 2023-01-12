@@ -1,7 +1,5 @@
 #!/bin/bash
 
-MYPATH="$(dirname -- "$(which -- "$0" 2>/dev/null || realpath -- "./$0")")"
-
 function usage {
 	echo "ov.root [start|stop|bash|run]"
 	exit -1
@@ -114,17 +112,39 @@ function ov_stop {
 }
 
 function ov_run {
+	if ! running
+	then
+		ov_start
+		trap ov_stop EXIT
+	fi
 	if running
 	then
-		sudo chroot "$OV/root" sudo -u "$USER" env -C "$PWD" OVERLAY="$OV" PATH="$PATH" "$@"
+		sudo chroot "$OV/root" sudo -u "$CHUSER" env -C "$CHDIR" OVERLAY="$OV" PATH="$PATH" "$@"
 	else
 		error "root overlay not running"
 	fi
 }
 
+if test -n "$OVERLAY"
+then
+	error "Already in an overlay: $OVERLAY"
+fi
+
+OV_BASE="$HOME/.overlay"
+OV_NAME="default"
 VERB=false
 FORCE=false
-OV=$MYPATH/overlay
+CHUSER=$USER
+CHDIR=$PWD
+SCR_BASE=${0##*/}
+SCR_DIR=${0%/*} 
+
+OV="$OV_BASE/$OV_NAME"
+case "$SCR_BASE" in
+ov.bash) ov_run $BASH "$@"; exit ;;
+esac
+
+
 while test -n "$1"
 do
 	case "$1" in
@@ -133,21 +153,52 @@ do
 		echo "ov.root [options] [start|stop|shell|run]"
 		echo ""
 		echo "Options:"
-		echo "  -h|--help    Print help"
-		echo "  -d PATH      Set path for the overlay setup"
+		echo "  -h|--help        Print help"
+		echo "  -n|--name NAME   Set a named root overlay"
+		echo "  -d|--dir PATH    Set path for the overlay setup"
+		echo "  -C|--chdir PATH  Change path after chroot"
+		echo "  -u|--user user   Change user after chroot"
+		echo "  -v|--verbose     Be more verbose"
 		echo ""
 		echo "Commands:"
-		echo "  start        Mount the root overlay"
-		echo "  stop         Unmount the root overlay"
-		echo "  shell        Run bash in the root overlay"
-		echo "  run COMMAND  Run COMMAND in the root overlay"
+		echo "  start            Mount the root overlay"
+		echo "  stop             Unmount the root overlay"
+		echo "  bash             Run bash in the root overlay"
+		echo "  run COMMAND      Run COMMAND in the root overlay"
+		echo ""
+		echo "Other commands:"
+		echo "  status           Get root overlay status (running on not)"
+		echo "  install          Install ov.root and ov.bash in /usr/bin"
 		echo ""
 		exit 0;
 		;;
 	-d|--dir)
 		shift
 		test -z "$1" && error "-d option needs path"
-		OV="$1"
+		OV_BASE="$1"
+		;;
+	-n|--name)
+		shift
+		test -z "$1" && error "-n option needs a name"
+		OV_NAME="$1"
+		;;
+	-C|--chdir)
+		shift
+		if test -d "$1"
+		then
+			CHDIR="$1"
+		else
+			error "Not a directory: '$1'"
+		fi
+		;;
+	-u|--user)
+		shift
+		if id -u "$1" >/dev/null 2>&1
+		then
+			CHUSER="$1"
+		else
+			error "Not a user: '$1'"
+		fi
 		;;
 	-v|--verbose) VERB=true ;;
 	-f|--force) FORCE=true ;;
@@ -159,12 +210,9 @@ do
 	shift
 done
 
-if test -n "$OVERLAY"
-then
-	error "Already in an overlay: $OVERLAY"
-fi
-
 test -z "$1" && usage
+
+OV="$OV_BASE/$OV_NAME"
 test -z "$OV" && error "The overlay directory cannot be an empty string"
 verb "Overlay directory: '$OV'"
 
@@ -187,5 +235,29 @@ status)
 ;;
 run) ov_run "$@" ;;
 bash) ov_run $BASH "$@" ;;
+install)
+	if test -z "$1"
+	then
+		P="/usr/bin"
+	else
+		if test -d "$1"
+		then
+			P="$1"
+		else
+			error "Not a directory: '$1'"
+		fi
+	fi
+	if test "SCR_DIR" == "$P"
+	then
+		error "Trying to copy to the same directory: '$0' -> '$P'"
+	else
+		sudo cp "$0" "$P/ov.root"
+		sudo ln -s "ov.root" "$P/ov.bash"
+	fi
+	;;
+path)
+	echo "$OV/diff"
+	exit 0
+	;;
 *) error "Unknown command $CMD" ;;
 esac
