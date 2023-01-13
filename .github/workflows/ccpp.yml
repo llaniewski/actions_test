@@ -34,7 +34,7 @@ jobs:
         ov.root stop
         export OV=$(ov.root path)
         # echo "path=$OV" >>$GITHUB_OUTPUT
-        sudo tar -cf --remove-files diff.tar -C $OV/ .
+        sudo tar -c --remove-files -f diff.tar -C $OV/ .
         ls -lh diff.tar
         echo "path=diff.tar" >>$GITHUB_OUTPUT
         echo "hash=$(sha256sum diff.tar)" >>$GITHUB_OUTPUT
@@ -58,7 +58,7 @@ jobs:
         ./ov.root install
         export OV=$(ov.root path)
         mkdir -p $OV/
-        sudo tar -xf diff.tar -C $OV/
+        sudo tar -x --same-permissions --same-owner -f diff.tar -C $OV/
         ov.root start
     - shell: ov.bash {0}
       run: |
