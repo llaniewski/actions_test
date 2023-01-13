@@ -34,10 +34,10 @@ jobs:
         ov.root stop
         export OV=$(ov.root path)
         # echo "path=$OV" >>$GITHUB_OUTPUT
-        sudo tar czf diff.tgz -C $OV/ .
-        ls -lh diff.tgz
-        echo "path=diff.tgz" >>$GITHUB_OUTPUT
-        echo "hash=$(sha256sum diff.tgz)" >>$GITHUB_OUTPUT
+        sudo tar -cf --remove-files diff.tar -C $OV/ .
+        ls -lh diff.tar
+        echo "path=diff.tar" >>$GITHUB_OUTPUT
+        echo "hash=$(sha256sum diff.tar)" >>$GITHUB_OUTPUT
     - uses: actions/cache/save@v3
       with:
         path: ${{ steps.ovstop.outputs.path }}
@@ -58,7 +58,7 @@ jobs:
         ./ov.root install
         export OV=$(ov.root path)
         mkdir -p $OV/
-        sudo tar xzf --same-permissions --same-owner diff.tgz -C $OV/
+        sudo tar -xf diff.tar -C $OV/
         ov.root start
     - shell: ov.bash {0}
       run: |
