@@ -22,6 +22,11 @@ jobs:
          ./install.sh --sudo --group cuda
          ./install.sh --sudo --group openmpi
          ./install.sh --sudo --group cuda 11.7
+         CUDA_PATH=/usr/local/cuda-${{ inputs.cuda }}
+         echo "export PATH=\"$CUDA_PATH/bin:\$PATH\"" >> ~/.myenv
+         echo "export LD_LIBRARY_PATH=\"$CUDA_PATH/lib64:\$LD_LIBRARY_PATH\"" >> ~/.myenv
+         cat ~/.myenv
+         source ~/.myenv
          nvcc --version
     - name: stop
       shell: bash
@@ -58,6 +63,7 @@ jobs:
         ov.root start
     - shell: ov.bash {0}
       run: |
+        source ~/.myenv
         R -e 'print(1:10)'
         nvcc --version
     - name: stop
