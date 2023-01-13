@@ -19,10 +19,9 @@ jobs:
       run: |
         ./install.sh --sudo --group r
          ./install.sh --sudo --group rdep
-         ./install.sh --sudo --group cuda
          ./install.sh --sudo --group openmpi
          ./install.sh --sudo --group cuda 11.7
-         CUDA_PATH=/usr/local/cuda-${{ inputs.cuda }}
+         CUDA_PATH=/usr/local/cuda-11.7
          echo "export PATH=\"$CUDA_PATH/bin:\$PATH\"" >> ~/.myenv
          echo "export LD_LIBRARY_PATH=\"$CUDA_PATH/lib64:\$LD_LIBRARY_PATH\"" >> ~/.myenv
          cat ~/.myenv
